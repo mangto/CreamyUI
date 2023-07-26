@@ -2,7 +2,7 @@ import json, os
 from CreamyUI.object.normal import *
 from CreamyUI.function import *
 
-necessary = ["caption", "objects"]
+necessary = ["reload", "caption", "background", "objects", "connector"]
 mapper = {
     "image":image,
     "text":text
@@ -11,7 +11,8 @@ mapper = {
 def loader(path:str) -> dict:
     loaded:dict = {
         "caption":"Creamy Window",
-        "objects":[]
+        "objects":[],
+        "connector":{}
     }
 
     exist = os.path.isfile(path)
