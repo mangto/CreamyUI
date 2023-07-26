@@ -2,6 +2,14 @@ import pygame, sys
 from pygame import gfxdraw
 from CreamyUI.function import *
 from CreamyUI.loader import *
+import win32gui
+import win32con
+
+def wndProc(oldWndProc, draw_callback, hWnd, message, wParam, lParam):
+    if message == win32con.WM_SIZE:
+        draw_callback()
+        win32gui.RedrawWindow(hWnd, None, None, win32con.RDW_INVALIDATE | win32con.RDW_ERASE)
+    return win32gui.CallWindowProc(oldWndProc, hWnd, message, wParam, lParam)
 
 
 pygame.init()
@@ -34,10 +42,20 @@ class system:
                 sys.exit()
 
         return events
+    
+    def draw():
+        window.fill(background)
+        for object in objects:
+            object.draw(
+                window=window
+            )
+        
+        system.update()
+        clock.tick(system.TargetFps)
         
 
 def InitWindow(size:tuple[int, int], title:str="Creamy Window", icon:pygame.Surface=None) -> pygame.Surface:
-    window = pygame.display.set_mode(size, pygame.RESIZABLE)
+    window = pygame.display.set_mode(size, pygame.RESIZABLE| pygame.DOUBLEBUF)
     icon = icon if icon else LoadTexture(".\\CreamyUI\\tex\\CREAM.png")
     pygame.display.set_caption(title)
     pygame.display.set_icon(icon)
@@ -56,22 +74,18 @@ def unpack(settings):
     
 
 def run(path:str=None):
+    global window, objects, background, reload, caption, size, connector
     window = pygame.display.set_mode((1,1))
 
     settings = loader(path)
     objects, background, reload, caption, size, connector = unpack(settings)
     window = InitWindow(size, caption)
 
+    oldWndProc = win32gui.SetWindowLong(win32gui.GetForegroundWindow(), win32con.GWL_WNDPROC, lambda *args: wndProc(oldWndProc, system.draw, *args))
+
     while True:
         events = system.DefualtEvent()
-        window.fill(background)
-        for object in objects:
-            object.draw(
-                window=window
-            )
-        
-        system.update()
-        clock.tick(system.TargetFps)
+        system.draw()
 
 
         # reloader for designer
